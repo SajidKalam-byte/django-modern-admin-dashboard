@@ -1,0 +1,3 @@
+recursive-include dashboard/templates *
+recursive-include dashboard/static *
+recursive-include dashboard_config *

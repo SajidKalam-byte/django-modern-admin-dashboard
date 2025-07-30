@@ -1,0 +1,277 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11"]
+        django-version: [3.2, 4.0, 4.1, 4.2]
+        exclude:
+          # Django 4.0+ requires Python 3.8+
+          - python-version: 3.7
+            django-version: 4.0
+          - python-version: 3.7
+            django-version: 4.1
+          - python-version: 3.7
+            django-version: 4.2
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install Django~=${{ matrix.django-version }}.0
+        pip install djangorestframework
+        pip install -r requirements-dev.txt
+        pip install -e .
+
+    - name: Run linting
+      run: |
+        flake8 dashboard dashboard_config --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 dashboard dashboard_config --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run type checking
+      run: |
+        mypy dashboard dashboard_config --ignore-missing-imports
+
+    - name: Run tests
+      run: |
+        pytest --cov=dashboard --cov=dashboard_config --cov-report=xml --cov-report=term-missing
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  test-django-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Test Django compatibility
+      run: |
+        # Test with minimum Django version
+        pip install Django==3.2 djangorestframework
+        pip install -e .
+        python -c "import django; print(f'Django {django.get_version()}')"
+        python -c "import dashboard; print('Dashboard package imports successfully')"
+        
+        # Test with latest Django version
+        pip install Django==4.2 djangorestframework
+        python -c "import django; print(f'Django {django.get_version()}')"
+        python -c "import dashboard; print('Dashboard package imports successfully')"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+        pip install -e .
+    
+    - name: Run safety check
+      run: safety check
+    
+    - name: Run bandit security scan
+      run: bandit -r dashboard dashboard_config -f json -o bandit-report.json || true
+    
+    - name: Upload bandit report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  build-and-test-package:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel twine
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check package
+      run: |
+        twine check dist/*
+    
+    - name: Test package installation
+      run: |
+        pip install dist/*.whl
+        python -c "import dashboard; print('Package installed successfully')"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+  test-project-demo:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install Django djangorestframework
+        pip install -e .
+    
+    - name: Set up test project
+      run: |
+        cd test_project
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+    
+    - name: Create test data
+      run: |
+        cd test_project
+        python manage.py shell -c "
+        from django.contrib.auth.models import User
+        from test_app.models import Order, Product
+        import random
+        from decimal import Decimal
+        
+        # Create test users
+        for i in range(10):
+            User.objects.get_or_create(
+                username=f'user{i}',
+                defaults={'email': f'user{i}@test.com', 'is_active': True}
+            )
+        
+        # Create test products
+        for i in range(5):
+            Product.objects.get_or_create(
+                name=f'Product {i}',
+                defaults={
+                    'description': f'Test product {i}',
+                    'price': Decimal(str(random.randint(10, 100))),
+                    'stock_quantity': random.randint(0, 50)
+                }
+            )
+        
+        # Create test orders
+        users = list(User.objects.all())
+        for i in range(20):
+            Order.objects.get_or_create(
+                order_number=f'ORD-{i:04d}',
+                defaults={
+                    'customer': random.choice(users),
+                    'amount': Decimal(str(random.randint(50, 500))),
+                    'status': random.choice(['pending', 'processing', 'shipped', 'delivered'])
+                }
+            )
+        
+        print('Test data created successfully')
+        "
+    
+    - name: Test dashboard access
+      run: |
+        cd test_project
+        python manage.py shell -c "
+        from django.test import Client
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        
+        # Create staff user
+        user = User.objects.create_user('staff', 'staff@test.com', 'password', is_staff=True)
+        
+        # Test dashboard access
+        client = Client()
+        client.login(username='staff', password='password')
+        
+        response = client.get('/dashboard/')
+        print(f'Dashboard response status: {response.status_code}')
+        assert response.status_code == 200, 'Dashboard should be accessible'
+        
+        # Test API endpoints
+        response = client.get('/dashboard/api/v1/widgets/')
+        print(f'API response status: {response.status_code}')
+        assert response.status_code == 200, 'API should be accessible'
+        
+        print('Dashboard test passed successfully')
+        "
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy
+        pip install -e .
+    
+    - name: Check code formatting with Black
+      run: |
+        black --check --diff dashboard dashboard_config tests
+    
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff dashboard dashboard_config tests
+    
+    - name: Run flake8
+      run: |
+        flake8 dashboard dashboard_config tests --max-line-length=127 --extend-ignore=E203,W503
+    
+    - name: Run mypy
+      run: |
+        mypy dashboard dashboard_config --ignore-missing-imports

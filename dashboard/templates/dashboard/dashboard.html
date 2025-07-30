@@ -1,0 +1,272 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}{{ title|default:'Admin Dashboard' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Dashboard Header -->
+    <div class="mb-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">
+                    Dashboard Overview
+                </h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Welcome back! Here's what's happening with your system.
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                {% if config.SEARCH_ENABLED %}
+                <div class="relative">
+                    <input 
+                        type="search" 
+                        placeholder="Search widgets..."
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
+                        onkeyup="filterWidgets(this.value)"
+                    >
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Widgets Grid -->
+    <div 
+        id="widgets-grid" 
+        class="grid grid-cols-1 gap-{{ config.WIDGET_GRID.gap|default:4 }} 
+               md:grid-cols-{{ config.WIDGET_GRID.cols.md|default:2 }} 
+               lg:grid-cols-{{ config.WIDGET_GRID.cols.lg|default:3 }} 
+               xl:grid-cols-{{ config.WIDGET_GRID.cols.xl|default:4 }}"
+    >
+        {% for widget in widgets %}
+        <div 
+            class="widget-card bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200"
+            data-widget-id="{{ widget.widget_id }}
+            data-widget-type="{{ widget.widget_type }}"
+            data-widget-title="{{ widget.title|lower }}"
+            hx-get="{% url 'dashboard:widget_data' widget_id=widget.widget_id %}"
+            hx-trigger="refresh"
+            hx-target="this"
+            hx-swap="outerHTML"
+        >
+            <!-- Widget Header -->
+            <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <!-- Widget Icon -->
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-{{ widget.color|default:'blue' }}-100 dark:bg-{{ widget.color|default:'blue' }}-900 rounded-lg flex items-center justify-center">
+                                {% if widget.icon == 'users' %}
+                                    <svg class="w-5 h-5 text-{{ widget.color|default:'blue' }}-600 dark:text-{{ widget.color|default:'blue' }}-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                                    </svg>
+                                {% elif widget.icon == 'chart-line' %}
+                                    <svg class="w-5 h-5 text-{{ widget.color|default:'blue' }}-600 dark:text-{{ widget.color|default:'blue' }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                    </svg>
+                                {% elif widget.icon == 'server' %}
+                                    <svg class="w-5 h-5 text-{{ widget.color|default:'blue' }}-600 dark:text-{{ widget.color|default:'blue' }}-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 1a1 1 0 11-2 0 1 1 0 012 0zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-5 h-5 text-{{ widget.color|default:'blue' }}-600 dark:text-{{ widget.color|default:'blue' }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Widget Title -->
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                {{ widget.title }}
+                            </h3>
+                            {% if widget.description %}
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ widget.description }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Widget Actions -->
+                    <div class="flex items-center space-x-2">
+                        <button 
+                            type="button"
+                            onclick="refreshWidget('{{ widget.widget_id }}')"
+                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="Refresh widget"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget Content -->
+            <div class="px-4 py-4">
+                {% if widget.widget_type == 'metric' %}
+                    <!-- Metric Widget -->
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white">
+                            {{ widget.get_value|default:'-' }}
+                        </div>
+                        {% if widget.get_trend %}
+                        <div class="mt-2 flex items-center justify-center">
+                            {% if widget.get_trend > 0 %}
+                                <svg class="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-sm text-green-600 dark:text-green-400">+{{ widget.get_trend }}%</span>
+                            {% else %}
+                                <svg class="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-sm text-red-600 dark:text-red-400">{{ widget.get_trend }}%</span>
+                            {% endif %}
+                            <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">{{ widget.get_trend_period }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                
+                {% elif widget.widget_type == 'chart' %}
+                    <!-- Chart Widget -->
+                    <div class="h-64">
+                        <canvas 
+                            id="chart-{{ widget.widget_id }}"
+                            data-chart-config="{{ widget.get_chart_data|safe }}"
+                        ></canvas>
+                    </div>
+                
+                {% elif widget.widget_type == 'table' %}
+                    <!-- Table Widget -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    {% for header in widget.get_headers %}
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        {{ header }}
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for row in widget.get_rows %}
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    {% for cell in row %}
+                                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                        {{ cell }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="{{ widget.get_headers|length }}" class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        No data available
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                
+                {% else %}
+                    <!-- Custom Widget Content -->
+                    {{ widget.render|safe }}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <!-- No Widgets Message -->
+        <div class="col-span-full">
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No widgets available</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Configure widgets in your Django settings to see them here.
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('canvas[data-chart-config]').forEach(function(canvas) {
+            const config = JSON.parse(canvas.getAttribute('data-chart-config'));
+            new Chart(canvas.getContext('2d'), config);
+        });
+    });
+
+    // Widget filtering
+    function filterWidgets(searchTerm) {
+        const widgets = document.querySelectorAll('.widget-card');
+        const term = searchTerm.toLowerCase();
+        
+        widgets.forEach(widget => {
+            const title = widget.getAttribute('data-widget-title');
+            const type = widget.getAttribute('data-widget-type');
+            
+            if (title.includes(term) || type.includes(term)) {
+                widget.style.display = '';
+            } else {
+                widget.style.display = 'none';
+            }
+        });
+    }
+
+    // Refresh individual widget
+    function refreshWidget(widgetId) {
+        const widget = document.querySelector(`[data-widget-id="${widgetId}"]`);
+        if (widget) {
+            htmx.trigger(widget, 'refresh');
+        }
+    }
+
+    // Global chart defaults
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+    
+    // Update chart colors for dark mode
+    function updateChartColors() {
+        const isDark = document.documentElement.classList.contains('dark');
+        Chart.defaults.color = isDark ? '#D1D5DB' : '#374151';
+        Chart.defaults.borderColor = isDark ? '#374151' : '#E5E7EB';
+        Chart.defaults.backgroundColor = isDark ? '#1F2937' : '#F9FAFB';
+    }
+    
+    updateChartColors();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+                updateChartColors();
+                // Recreate charts with new colors
+                Chart.instances.forEach(chart => chart.update());
+            }
+        });
+    });
+    
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+</script>
+{% endblock %}

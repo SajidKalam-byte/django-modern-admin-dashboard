@@ -1,0 +1,10 @@
+# Development requirements
+pytest-django>=4.5.0
+pytest-cov>=4.0.0
+pytest-xdist>=3.0.0
+black>=22.0.0
+flake8>=6.0.0
+isort>=5.10.0
+mypy>=1.0.0
+django-stubs>=4.2.0
+djangorestframework-stubs>=3.14.0

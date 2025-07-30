@@ -1,0 +1,338 @@
+/* Custom Admin Dashboard Styles */
+
+/* Base styles and overrides */
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator {
+    opacity: 1;
+}
+
+.htmx-request.htmx-indicator {
+    opacity: 1;
+}
+
+/* Widget animations */
+.widget-card {
+    transition: all 200ms ease-in-out;
+}
+
+.widget-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Loading skeleton animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #6B7280;
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Light mode scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F3F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* Responsive text scaling */
+@media (max-width: 640px) {
+    .widget-card .text-3xl {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+    }
+}
+
+/* Focus styles for accessibility */
+.focus-visible:focus {
+    outline: 2px solid #4F46E5;
+    outline-offset: 2px;
+}
+
+/* Custom color utilities */
+.text-primary {
+    color: #4F46E5;
+}
+
+.bg-primary {
+    background-color: #4F46E5;
+}
+
+.border-primary {
+    border-color: #4F46E5;
+}
+
+.text-secondary {
+    color: #10B981;
+}
+
+.bg-secondary {
+    background-color: #10B981;
+}
+
+.border-secondary {
+    border-color: #10B981;
+}
+
+/* Dark mode color overrides */
+.dark .text-primary {
+    color: #818CF8;
+}
+
+.dark .bg-primary {
+    background-color: #6366F1;
+}
+
+.dark .border-primary {
+    border-color: #6366F1;
+}
+
+.dark .text-secondary {
+    color: #34D399;
+}
+
+.dark .bg-secondary {
+    background-color: #059669;
+}
+
+.dark .border-secondary {
+    border-color: #059669;
+}
+
+/* Status indicators */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-healthy {
+    background-color: #10B981;
+}
+
+.status-warning {
+    background-color: #F59E0B;
+}
+
+.status-error {
+    background-color: #EF4444;
+}
+
+.status-inactive {
+    background-color: #6B7280;
+}
+
+/* Loading states */
+.loading-widget {
+    background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
+    background-size: 400% 100%;
+    animation: loading 1.4s ease infinite;
+}
+
+.dark .loading-widget {
+    background: linear-gradient(90deg, #374151 25%, transparent 37%, #374151 63%);
+    background-size: 400% 100%;
+    animation: loading 1.4s ease infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Toast notifications positioning */
+.toast-enter {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 300ms ease-out;
+}
+
+.toast-exit {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-exit-active {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 300ms ease-in;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .widget-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .widget-card {
+        border-width: 2px;
+    }
+    
+    button, a {
+        outline: 2px solid;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Custom utilities for dashboard layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+}
+
+/* Widget size variations */
+.widget-small {
+    grid-column: span 1;
+    grid-row: span 1;
+}
+
+.widget-medium {
+    grid-column: span 1;
+    grid-row: span 2;
+}
+
+.widget-large {
+    grid-column: span 2;
+    grid-row: span 1;
+}
+
+.widget-xl {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+@media (max-width: 768px) {
+    .widget-large,
+    .widget-xl {
+        grid-column: span 1;
+    }
+}
+
+/* Search highlight */
+.search-highlight {
+    background-color: #FEF3C7;
+    color: #92400E;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.dark .search-highlight {
+    background-color: #451A03;
+    color: #FCD34D;
+}
+
+/* Error states */
+.widget-error {
+    border-color: #EF4444;
+    background-color: #FEF2F2;
+}
+
+.dark .widget-error {
+    border-color: #DC2626;
+    background-color: #1F1415;
+}
+
+.error-message {
+    color: #DC2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.dark .error-message {
+    color: #F87171;
+}

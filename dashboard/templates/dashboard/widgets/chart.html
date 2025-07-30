@@ -1,0 +1,72 @@
+{% extends "dashboard/widgets/base.html" %}
+
+{% block widget_content %}
+<div class="h-64 relative">
+    <canvas 
+        id="chart-{{ widget.widget_id }}"
+        class="w-full h-full"
+    ></canvas>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('chart-{{ widget.widget_id }}');
+    if (canvas && !canvas.chart) {
+        const config = {{ chart_data|safe }};
+        
+        // Apply dark mode colors if needed
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark && config.data && config.data.datasets) {
+            config.data.datasets.forEach(dataset => {
+                if (!dataset.borderColor || dataset.borderColor === '#4F46E5') {
+                    dataset.borderColor = '#8B5CF6';
+                }
+                if (!dataset.backgroundColor) {
+                    dataset.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+                }
+            });
+        }
+        
+        // Set responsive options
+        if (!config.options) config.options = {};
+        config.options.responsive = true;
+        config.options.maintainAspectRatio = false;
+        
+        // Apply theme-aware colors
+        if (!config.options.plugins) config.options.plugins = {};
+        if (!config.options.scales) config.options.scales = {};
+        
+        config.options.plugins.legend = {
+            ...config.options.plugins.legend,
+            labels: {
+                color: isDark ? '#D1D5DB' : '#374151'
+            }
+        };
+        
+        if (config.options.scales.x) {
+            config.options.scales.x.ticks = {
+                ...config.options.scales.x.ticks,
+                color: isDark ? '#9CA3AF' : '#6B7280'
+            };
+            config.options.scales.x.grid = {
+                ...config.options.scales.x.grid,
+                color: isDark ? '#374151' : '#E5E7EB'
+            };
+        }
+        
+        if (config.options.scales.y) {
+            config.options.scales.y.ticks = {
+                ...config.options.scales.y.ticks,
+                color: isDark ? '#9CA3AF' : '#6B7280'
+            };
+            config.options.scales.y.grid = {
+                ...config.options.scales.y.grid,
+                color: isDark ? '#374151' : '#E5E7EB'
+            };
+        }
+        
+        canvas.chart = new Chart(canvas.getContext('2d'), config);
+    }
+});
+</script>
+{% endblock %}
