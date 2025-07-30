@@ -2,4 +2,6 @@
 Custom Admin Dashboard Package.
 """
 
-__version__ = '0.1.0'
+from ._version import __version__
+
+default_app_config = 'dashboard.apps.DashboardConfig'
