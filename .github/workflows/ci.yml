@@ -51,6 +51,10 @@ jobs:
         # Basic syntax and import checks only
         flake8 dashboard dashboard_config --count --select=E9,F63,F7,F82 --show-source --statistics || echo "Linting issues found but continuing"
 
+    - name: Run health check
+      run: |
+        python health_check.py
+
     - name: Run tests
       env:
         DJANGO_SETTINGS_MODULE: tests.conftest
