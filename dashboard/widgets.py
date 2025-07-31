@@ -441,3 +441,47 @@ class UserRegistrationChartWidget(ChartWidget):
         })
         
         return context
+
+
+@register_widget
+class QuickActionsWidget(BaseWidget):
+    """Quick actions widget for common admin tasks."""
+    
+    widget_id = "quick_actions"
+    title = "Quick Actions"
+    description = "Common administrative actions"
+    icon = "lightning-bolt"
+    color = "green"
+    template_name = "dashboard/widgets/quick_actions.html"
+    
+    def get_context_data(self):
+        """Return context data for quick actions."""
+        actions = [
+            {
+                'name': 'Add User',
+                'url': '/admin/auth/user/add/',
+                'icon': 'user-plus',
+                'description': 'Create a new user account'
+            },
+            {
+                'name': 'View Users',
+                'url': '/admin/auth/user/',
+                'icon': 'users',
+                'description': 'Manage user accounts'
+            },
+            {
+                'name': 'Site Settings',
+                'url': '/admin/',
+                'icon': 'cog',
+                'description': 'Configure site settings'
+            },
+        ]
+        
+        return {
+            'actions': actions,
+            'total_actions': len(actions)
+        }
+
+
+# Alias for backward compatibility
+UserStatsWidget = UserCountWidget

@@ -14,8 +14,8 @@ from django.utils.translation import gettext as _
 
 # Import dashboard widgets and utilities
 from .widgets import (
-    UserStatsWidget, 
-    QuickActionsWidget, 
+    UserCountWidget, 
+    QuickActionsWidget,
     SystemStatusWidget,
     get_dashboard_widgets
 )
@@ -57,7 +57,7 @@ def dashboard_view(request):
     context = {
         'title': 'Dashboard',
         'widgets': widgets,
-        'user_stats': UserStatsWidget().get_context(),
+        'user_stats': UserCountWidget().get_context(),
         'quick_actions': QuickActionsWidget().get_context(),
         'system_status': SystemStatusWidget().get_context(),
     }
@@ -75,7 +75,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context.update({
             'title': 'Dashboard',
             'widgets': get_dashboard_widgets(),
-            'user_stats': UserStatsWidget().get_context(),
+            'user_stats': UserCountWidget().get_context(),
             'quick_actions': QuickActionsWidget().get_context(),
             'system_status': SystemStatusWidget().get_context(),
         })
@@ -99,7 +99,8 @@ def export_dashboard_data_view(request):
     Export dashboard data as JSON.
     """
     data = {
-        'user_stats': UserStatsWidget().get_context(),
+        'user_stats': UserCountWidget().get_context(),
+        'quick_actions': QuickActionsWidget().get_context(),
         'system_status': SystemStatusWidget().get_context(),
         'export_timestamp': request.GET.get('timestamp', 'now'),
     }
@@ -112,7 +113,7 @@ def widget_data_view(request, widget_id):
     Get data for a specific widget.
     """
     widgets = {
-        'user_stats': UserStatsWidget(),
+        'user_stats': UserCountWidget(),
         'quick_actions': QuickActionsWidget(),
         'system_status': SystemStatusWidget(),
     }
