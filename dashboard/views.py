@@ -18,6 +18,38 @@ from dashboard_config.settings import get_dashboard_settings
 
 
 @staff_member_required
+def admin_index_view(request):
+    """Admin index view with dashboard integration."""
+    from django.contrib.admin import site
+    from django.apps import apps
+    
+    # Get Django admin context
+    app_list = site.get_app_list(request)
+    
+    # Get dashboard widgets
+    config = get_dashboard_settings()
+    enabled_widgets = widget_registry.get_enabled_widgets()
+    
+    widgets = []
+    for widget_class in enabled_widgets:
+        widget_instance = widget_class(request=request)
+        if widget_instance.has_permission(request.user):
+            widgets.append(widget_instance)
+    
+    context = {
+        'title': 'Site administration',
+        'site_title': getattr(settings, 'ADMIN_SITE_TITLE', 'Django administration'),
+        'site_header': getattr(settings, 'ADMIN_SITE_HEADER', 'Django administration'),
+        'site_index_title': 'Site administration',
+        'available_apps': app_list,
+        'widgets': widgets,
+        'config': config,
+    }
+    
+    return render(request, 'admin/index.html', context)
+
+
+@staff_member_required
 def dashboard_view(request):
     """Main dashboard view."""
     config = get_dashboard_settings()

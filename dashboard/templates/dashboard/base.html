@@ -131,10 +131,10 @@
                                     <div class="font-medium">{{ user.get_full_name|default:user.username }}</div>
                                     <div class="text-gray-500 dark:text-gray-400">{{ user.email }}</div>
                                 </div>
-                                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    Django Admin
+                                <a href="{% url 'dashboard:index' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    Dashboard Home
                                 </a>
-                                <a href="{% url 'admin:logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <a href="{% url 'dashboard:logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     Sign out
                                 </a>
                             </div>

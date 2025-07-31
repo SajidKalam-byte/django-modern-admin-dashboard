@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% load dashboard_tags %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block body_class %}{{ block.super }} dashboard-admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-admin-wrapper">
+    <div class="admin-header mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">{{ site_header|default:"Django administration" }}</h1>
+        <p class="text-gray-600">{{ site_index_title|default:"Site administration" }}</p>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for app in available_apps %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                <a href="{{ app.app_url }}" class="text-blue-600 hover:text-blue-800">
+                    {{ app.name }}
+                </a>
+            </h2>
+            <div class="space-y-2">
+                {% for model in app.models %}
+                <div class="flex items-center justify-between">
+                    <a href="{{ model.admin_url }}" class="text-gray-700 hover:text-blue-600">
+                        {{ model.name }}
+                    </a>
+                    <div class="flex space-x-2">
+                        {% if model.add_url %}
+                        <a href="{{ model.add_url }}" class="text-green-600 hover:text-green-800 text-sm">
+                            Add
+                        </a>
+                        {% endif %}
+                        {% if model.admin_url %}
+                        <a href="{{ model.admin_url }}" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Change
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm">No models available</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full">
+            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                <p class="text-gray-600">No apps available for administration.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Dashboard Widgets Section -->
+    <div class="mt-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+        {% render_dashboard_widgets %}
+    </div>
+</div>
+{% endblock %}

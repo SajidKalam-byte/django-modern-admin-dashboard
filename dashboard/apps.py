@@ -19,3 +19,19 @@ class DashboardConfig(AppConfig):
             from . import widgets  # noqa
         except ImportError:
             pass
+        
+        # Override admin site configuration
+        self.configure_admin_site()
+    
+    def configure_admin_site(self):
+        """Configure the admin site with custom dashboard styling."""
+        from django.contrib import admin
+        from django.conf import settings
+        
+        # Get dashboard config
+        dashboard_config = getattr(settings, 'CUSTOM_ADMIN_DASHBOARD_CONFIG', {})
+        
+        # Update admin site configuration
+        admin.site.site_header = dashboard_config.get('SITE_HEADER', 'Modern Admin Dashboard')
+        admin.site.site_title = dashboard_config.get('SITE_TITLE', 'Dashboard')
+        admin.site.index_title = dashboard_config.get('INDEX_TITLE', 'Welcome to Dashboard')
