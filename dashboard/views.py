@@ -21,7 +21,7 @@ from dashboard_config.settings import get_dashboard_settings
 def admin_index_view(request):
     """Admin index view with dashboard integration."""
     from django.contrib.admin import site
-    from django.apps import apps
+    from django.contrib.admin.models import LogEntry
     
     # Get Django admin context
     app_list = site.get_app_list(request)
@@ -36,17 +36,27 @@ def admin_index_view(request):
         if widget_instance.has_permission(request.user):
             widgets.append(widget_instance)
     
+    # Get recent admin log entries (what Django's admin expects)
+    log_entries = LogEntry.objects.filter(
+        user=request.user
+    ).select_related('content_type', 'user')[:10]
+    
     context = {
-        'title': 'Site administration',
-        'site_title': getattr(settings, 'ADMIN_SITE_TITLE', 'Django administration'),
-        'site_header': getattr(settings, 'ADMIN_SITE_HEADER', 'Django administration'),
-        'site_index_title': 'Site administration',
+        'title': config.get('SITE_TITLE', 'Administration Dashboard'),
+        'site_title': config.get('SITE_TITLE', 'Django administration'), 
+        'site_header': config.get('SITE_HEADER', 'Administration Dashboard'),
+        'site_index_title': config.get('INDEX_TITLE', 'Welcome to Dashboard'),
         'available_apps': app_list,
+        'app_list': app_list,  # Django admin expects this
         'widgets': widgets,
         'config': config,
+        'log_entries': log_entries,  # Fix for the KeyError
+        'user': request.user,
+        'has_permission': True,  # User is already staff (checked by decorator)
     }
     
-    return render(request, 'admin/index.html', context)
+    # Use our dashboard template instead of Django's default admin template
+    return render(request, 'dashboard/dashboard.html', context)
 
 
 @staff_member_required
