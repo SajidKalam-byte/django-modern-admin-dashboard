@@ -485,3 +485,27 @@ class QuickActionsWidget(BaseWidget):
 
 # Alias for backward compatibility
 UserStatsWidget = UserCountWidget
+
+
+def get_dashboard_widgets():
+    """
+    Get all registered dashboard widgets.
+    Returns a dictionary of widget instances.
+    """
+    return widget_registry.get_enabled_widgets()
+
+
+def get_widget_instances():
+    """
+    Get instances of all registered widgets.
+    Returns a dictionary mapping widget_id to widget instance.
+    """
+    widgets = {}
+    for widget_class in widget_registry.get_enabled_widgets():
+        try:
+            widget = widget_class()
+            widgets[widget.widget_id] = widget
+        except Exception as e:
+            # Skip widgets that can't be instantiated
+            continue
+    return widgets
