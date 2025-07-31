@@ -22,17 +22,6 @@ class DashboardConfig(AppConfig):
         
         # Override admin site configuration
         self.configure_admin_site()
-        
-        # Register models with custom admin site
-        self.setup_custom_admin()
-    
-    def setup_custom_admin(self):
-        """Set up the custom admin site with all registered models."""
-        try:
-            from .admin import dashboard_admin_site, register_default_models
-            register_default_models()
-        except ImportError:
-            pass
     
     def configure_admin_site(self):
         """Configure the admin site with custom dashboard styling."""
