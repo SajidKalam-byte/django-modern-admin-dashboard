@@ -1,0 +1,134 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}{% if title %}{{ title }} | {% endif %}{{ site_title|default:'Dashboard Admin' }}{% endblock %}
+
+{% block body_class %}{{ block.super }} admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="admin-content">
+    {% if not user.is_authenticated %}
+        {% block login_content %}
+        {% endblock %}
+    {% else %}
+        {% block admin_header %}
+        <div class="admin-header mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    {% if title %}
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+                    {% endif %}
+                    {% block breadcrumbs %}
+                    <nav class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <a href="{% url 'admin:index' %}" class="hover:text-gray-900 dark:hover:text-white">Home</a>
+                        {% if cl %}
+                            <span class="mx-2">›</span>
+                            <a href="{% url 'admin:app_list' app_label=cl.opts.app_label %}" class="hover:text-gray-900 dark:hover:text-white">{{ cl.opts.app_config.verbose_name }}</a>
+                            <span class="mx-2">›</span>
+                            <span>{{ cl.opts.verbose_name_plural|capfirst }}</span>
+                        {% endif %}
+                    </nav>
+                    {% endblock %}
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% block admin_tools %}
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Welcome, {{ user.get_full_name|default:user.username }}</span>
+                    <a href="{% url 'admin:password_change' %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-sm">Change password</a>
+                    <a href="{% url 'admin:logout' %}" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Log out</a>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+        
+        {% block content %}
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+            {% block admin_content %}
+            {% endblock %}
+        </div>
+        {% endblock %}
+        
+        {% block footer %}
+        <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; {% now "Y" %} Dashboard Admin. Powered by Django.</p>
+        </div>
+        {% endblock %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Admin-specific styling */
+    .admin-content .form-row {
+        @apply mb-4;
+    }
+    
+    .admin-content .form-row label {
+        @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    }
+    
+    .admin-content input[type="text"],
+    .admin-content input[type="email"],
+    .admin-content input[type="password"],
+    .admin-content input[type="number"],
+    .admin-content textarea,
+    .admin-content select {
+        @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white;
+    }
+    
+    .admin-content .submit-row {
+        @apply mt-6 flex justify-end space-x-3;
+    }
+    
+    .admin-content .submit-row input[type="submit"],
+    .admin-content .submit-row button {
+        @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    }
+    
+    .admin-content .delete-link {
+        @apply text-red-600 hover:text-red-800;
+    }
+    
+    .admin-content .addlink {
+        @apply text-green-600 hover:text-green-800;
+    }
+    
+    .admin-content .changelink {
+        @apply text-blue-600 hover:text-blue-800;
+    }
+    
+    .admin-content .button {
+        @apply inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    }
+    
+    .admin-content .button.default {
+        @apply bg-gray-600 hover:bg-gray-700;
+    }
+    
+    .admin-content table {
+        @apply min-w-full bg-white dark:bg-gray-800;
+    }
+    
+    .admin-content th {
+        @apply px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+    }
+    
+    .admin-content td {
+        @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700;
+    }
+    
+    .admin-content .paginator {
+        @apply mt-6 flex items-center justify-between;
+    }
+    
+    .admin-content .paginator .this-page {
+        @apply px-3 py-2 bg-blue-600 text-white rounded;
+    }
+    
+    .admin-content .paginator a {
+        @apply px-3 py-2 text-blue-600 hover:text-blue-800 dark:text-blue-400;
+    }
+</style>
+{% endblock %}

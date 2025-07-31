@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block admin_content %}
+<div class="change-list">
+    {% block search %}
+    {% search_form cl %}
+    {% endblock %}
+
+    {% block date_hierarchy %}
+    {% date_hierarchy cl %}
+    {% endblock %}
+
+    {% block filters %}
+    {% if cl.has_filters %}
+    <div class="filters mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Filters</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for spec in cl.filter_specs %}
+                {% admin_list_filter cl spec %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endblock %}
+
+    <div class="results">
+        {% block result_list %}
+        <div class="overflow-x-auto">
+            <div class="inline-block min-w-full shadow overflow-hidden border-b border-gray-200 dark:border-gray-700 sm:rounded-lg">
+                {% result_list cl %}
+            </div>
+        </div>
+        {% endblock %}
+        
+        {% block pagination %}
+        {% pagination cl %}
+        {% endblock %}
+    </div>
+
+    {% block actions %}
+    {% if action_form and actions_on_top and cl.show_admin_actions %}
+    <div class="actions mb-6">
+        <form method="post" action="" class="flex items-center space-x-4">
+            {% csrf_token %}
+            <select name="action" class="block w-auto px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <option value="">---------</option>
+                {% for choice in action_form.action.field.choices %}
+                    <option value="{{ choice.0 }}">{{ choice.1|capfirst }}</option>
+                {% endfor %}
+            </select>
+            
+            {% if cl.result_count %}
+            <select name="select_across" class="hidden">
+                <option value="0">{{ cl.result_count }} of {{ cl.full_result_count }}</option>
+                <option value="1">All {{ cl.full_result_count }}</option>
+            </select>
+            {% endif %}
+            
+            <input type="submit" value="Go" class="button">
+            
+            {% if action_form.select_across %}
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+                {{ action_form.select_across }}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+    {% endif %}
+    {% endblock %}
+
+    {% if cl.formset %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ cl.formset.management_form }}
+        
+        {% if cl.formset.non_form_errors %}
+        <div class="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+            <div class="text-red-800 dark:text-red-200">
+                {{ cl.formset.non_form_errors }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="submit-row">
+            <input type="submit" value="Save" class="button default">
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+{% if cl.opts.has_add_permission and not cl.opts.abstract %}
+<div class="mt-6">
+    <a href="{% url cl.opts|admin_urlname:'add' %}" class="button addlink">
+        Add {{ cl.opts.verbose_name }}
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,87 @@
+{% load i18n %}
+
+<fieldset class="module aligned{% if fieldset.classes %} {{ fieldset.classes }}{% endif %} mb-8">
+    {% if fieldset.name %}
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+            {{ fieldset.name }}
+        </h2>
+    {% endif %}
+    
+    {% if fieldset.description %}
+        <div class="description text-sm text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+            {{ fieldset.description|safe }}
+        </div>
+    {% endif %}
+    
+    <div class="space-y-4">
+        {% for line in fieldset %}
+            <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %} field-{{ field.field.name }}{% endfor %}">
+                {% if line.fields|length_is:'1' %}
+                    <!-- Single field row -->
+                    {% for field in line %}
+                        <div class="field-wrapper">
+                            {% if field.field.label %}
+                                <label for="{{ field.field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    {{ field.field.label }}{% if field.field.field.required %}<span class="text-red-500 ml-1">*</span>{% endif %}
+                                </label>
+                            {% endif %}
+                            
+                            {% if field.is_readonly %}
+                                <div class="readonly px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
+                                    {{ field.contents }}
+                                </div>
+                            {% else %}
+                                {{ field.field }}
+                            {% endif %}
+                            
+                            {% if field.field.help_text %}
+                                <p class="help text-xs text-gray-500 dark:text-gray-400 mt-1">{{ field.field.help_text|safe }}</p>
+                            {% endif %}
+                            
+                            {% if field.field.errors %}
+                                <ul class="errorlist text-red-600 dark:text-red-400 text-sm mt-1">
+                                    {% for error in field.field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Multiple fields in one row -->
+                    <div class="grid grid-cols-{{ line.fields|length }} gap-4">
+                        {% for field in line %}
+                            <div class="field-wrapper">
+                                {% if field.field.label %}
+                                    <label for="{{ field.field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ field.field.label }}{% if field.field.field.required %}<span class="text-red-500 ml-1">*</span>{% endif %}
+                                    </label>
+                                {% endif %}
+                                
+                                {% if field.is_readonly %}
+                                    <div class="readonly px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white">
+                                        {{ field.contents }}
+                                    </div>
+                                {% else %}
+                                    {{ field.field }}
+                                {% endif %}
+                                
+                                {% if field.field.help_text %}
+                                    <p class="help text-xs text-gray-500 dark:text-gray-400 mt-1">{{ field.field.help_text|safe }}</p>
+                                {% endif %}
+                                
+                                {% if field.field.errors %}
+                                    <ul class="errorlist text-red-600 dark:text-red-400 text-sm mt-1">
+                                        {% for error in field.field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</fieldset>

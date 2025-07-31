@@ -2,6 +2,137 @@
 Views for the custom admin dashboard.
 """
 
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin import site
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.template.response import TemplateResponse
+from django.utils.translation import gettext as _
+
+# Import dashboard widgets and utilities
+from .widgets import (
+    UserStatsWidget, 
+    QuickActionsWidget, 
+    SystemStatusWidget,
+    get_dashboard_widgets
+)
+
+
+@staff_member_required
+def admin_index_view(request, extra_context=None):
+    """
+    Custom admin index view that uses the dashboard template.
+    This replaces Django's default admin index.
+    """
+    # Get the standard admin context
+    app_list = site.get_app_list(request)
+    
+    context = {
+        'title': _('Site administration'),
+        'app_list': app_list,
+        'available_apps': app_list,  # For backward compatibility
+        'has_permission': request.user.is_active and request.user.is_staff,
+        'site_title': site.site_title,
+        'site_header': site.site_header,
+        'site_url': site.site_url,
+        'site_index_title': _('Site administration'),
+    }
+    
+    # Add extra context if provided
+    if extra_context:
+        context.update(extra_context)
+    
+    return TemplateResponse(request, 'admin/index.html', context)
+
+
+@login_required
+def dashboard_view(request):
+    """
+    Main dashboard view with widgets (for /dashboard/widgets/ URL).
+    """
+    widgets = get_dashboard_widgets()
+    context = {
+        'title': 'Dashboard',
+        'widgets': widgets,
+        'user_stats': UserStatsWidget().get_context(),
+        'quick_actions': QuickActionsWidget().get_context(),
+        'system_status': SystemStatusWidget().get_context(),
+    }
+    return render(request, 'dashboard/dashboard.html', context)
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Class-based dashboard view.
+    """
+    template_name = 'dashboard/dashboard.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'title': 'Dashboard',
+            'widgets': get_dashboard_widgets(),
+            'user_stats': UserStatsWidget().get_context(),
+            'quick_actions': QuickActionsWidget().get_context(),
+            'system_status': SystemStatusWidget().get_context(),
+        })
+        return context
+
+
+@staff_member_required
+def dashboard_settings_view(request):
+    """
+    Dashboard settings view.
+    """
+    context = {
+        'title': 'Dashboard Settings',
+    }
+    return render(request, 'dashboard/settings.html', context)
+
+
+@staff_member_required
+def export_dashboard_data_view(request):
+    """
+    Export dashboard data as JSON.
+    """
+    data = {
+        'user_stats': UserStatsWidget().get_context(),
+        'system_status': SystemStatusWidget().get_context(),
+        'export_timestamp': request.GET.get('timestamp', 'now'),
+    }
+    return JsonResponse(data)
+
+
+@staff_member_required
+def widget_data_view(request, widget_id):
+    """
+    Get data for a specific widget.
+    """
+    widgets = {
+        'user_stats': UserStatsWidget(),
+        'quick_actions': QuickActionsWidget(),
+        'system_status': SystemStatusWidget(),
+    }
+    
+    widget = widgets.get(widget_id)
+    if widget:
+        data = widget.get_context()
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
+
+
+@staff_member_required
+def refresh_widget_view(request, widget_id):
+    """
+    Refresh data for a specific widget.
+    """
+    # This would typically refresh cached data
+    return widget_data_view(request, widget_id)
+
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
